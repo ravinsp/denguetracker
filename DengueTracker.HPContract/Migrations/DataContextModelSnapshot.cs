@@ -22,8 +22,8 @@ namespace DengueTracker.HPContract.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("TEXT");

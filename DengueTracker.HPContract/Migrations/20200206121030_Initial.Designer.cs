@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DengueTracker.HPContract.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20200206100220_Initial")]
+    [Migration("20200206121030_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,8 +24,8 @@ namespace DengueTracker.HPContract.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedOnUtc")
                         .HasColumnType("TEXT");

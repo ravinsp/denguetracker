@@ -16,14 +16,19 @@ namespace DengueTracker.HPContract
      * Produce deployable output with: dotnet publish -c Release
      *
      * User inputs can be submitted in the following format. (multiple inputs must be seperated by '\n')
-     * Add a new organization: add-org <org json>
-     * Record a new case: 'add-case <case json>'
+     * Add a new organization:      add-org <org json>      (Only allowed for super user)
+     * List organizations:          list-org                (Only allowed for super user)
+     * Record a new case:           add-case <case json>
      */
     public class Program
     {
-        static async Task Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            Console.WriteLine("Starting Dengue contract");
+            if (args.Length != 1)
+            {
+                Console.Error.WriteLine("1 argument expected");
+                return 1;
+            }
 
             ContractArgs contractArgs = await HotPocketHelper.GetContractArgsAsync();
 
@@ -49,7 +54,7 @@ namespace DengueTracker.HPContract
                 {
                     dataContext.Database.Migrate();
 
-                    var inputProcessor = new UserInputProcessor(userInputs, dataContext);
+                    var inputProcessor = new UserInputProcessor(userInputs, dataContext, args[0]);
                     var outputs = await inputProcessor.ProcessAsync();
 
                     // Send any outputs back to users
@@ -62,6 +67,8 @@ namespace DengueTracker.HPContract
                     }
                 }
             }
+
+            return 0;
         }
     }
 }

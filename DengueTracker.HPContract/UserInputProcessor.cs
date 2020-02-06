@@ -12,30 +12,34 @@ namespace DengueTracker.HPContract
         private readonly Dictionary<string, List<string>> _inputs;
         private readonly Dictionary<string, List<string>> _outputs;
         private readonly DataContext _dataContext;
+        private readonly string _superUserPubkey; // Only super user can manage organizations.
 
         private static readonly string AddOrg = "add-org";
         private static readonly string ListOrg = "list-org";
         private static readonly string AddCase = "add-case";
         private static readonly string[] SupportedCommands = { AddOrg, ListOrg, AddCase };
 
-        public UserInputProcessor(Dictionary<string, List<string>> inputs, DataContext dataContext)
+        public UserInputProcessor(Dictionary<string, List<string>> inputs, DataContext dataContext, string superUserPubkey)
         {
             _dataContext = dataContext;
             _inputs = inputs;
             _outputs = new Dictionary<string, List<string>>();
+            _superUserPubkey = superUserPubkey;
         }
 
         public async Task<Dictionary<string, List<string>>> ProcessAsync()
         {
             foreach (var pubkey in _inputs.Keys)
             {
+                bool isSuperUser = (pubkey == _superUserPubkey);
                 var inputLines = _inputs[pubkey];
+
                 foreach (var line in inputLines)
                 {
                     (string command, string content) = ParseInput(line);
                     if (command != null)
                     {
-                        string output = await HandleInputAsync(command, content);
+                        string output = await HandleInputAsync(command, content, isSuperUser);
                         if (output != null)
                         {
                             AddOutput(pubkey, output);
@@ -52,9 +56,9 @@ namespace DengueTracker.HPContract
             return _outputs;
         }
 
-        private async Task<string> HandleInputAsync(string command, string content)
+        private async Task<string> HandleInputAsync(string command, string content, bool isSuperUser)
         {
-            if (command == AddOrg && !string.IsNullOrWhiteSpace(content))
+            if (isSuperUser && command == AddOrg && !string.IsNullOrWhiteSpace(content))
             {
                 var org = JsonConvert.DeserializeObject<OrgModel>(content);
                 if (!string.IsNullOrWhiteSpace(org.Name) && !string.IsNullOrWhiteSpace(org.Key))
@@ -66,7 +70,7 @@ namespace DengueTracker.HPContract
                     });
                 }
             }
-            else if (command == ListOrg)
+            else if (isSuperUser && command == ListOrg)
             {
                 var orgs = await _dataContext.Organizations.Select(o => new OrgModel
                 {
@@ -79,13 +83,19 @@ namespace DengueTracker.HPContract
             else if (command == AddCase)
             {
                 var caseModel = JsonConvert.DeserializeObject<CaseModel>(content);
-                _dataContext.CaseEntries.Add(new CaseEntry
+                var org = await _dataContext.Organizations.FirstOrDefaultAsync(o => o.Key == caseModel.CreatedBy);
+
+                if (org != null) // Only accept cases from authorized organisations.
                 {
-                    IsPositive = caseModel.IsPositive,
-                    Lat = caseModel.Lat,
-                    Lon = caseModel.Lon,
-                    CreatedBy = caseModel.CreatedBy
-                });
+                    _dataContext.CaseEntries.Add(new CaseEntry
+                    {
+                        IsPositive = caseModel.IsPositive,
+                        Lat = caseModel.Lat,
+                        Lon = caseModel.Lon,
+                        CreatedBy = org.Id,
+                        CreatedOnUtc = DateTime.UtcNow
+                    });
+                }
             }
 
             return null; //no output

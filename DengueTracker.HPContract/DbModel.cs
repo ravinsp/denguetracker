@@ -30,7 +30,7 @@ namespace DengueTracker.HPContract
         public bool IsPositive { get; set; }
         public double Lat { get; set; }
         public double Lon { get; set; }
-        public string CreatedBy { get; set; }
+        public int CreatedBy { get; set; }
         public DateTime CreatedOnUtc { get; set; }
     }
 }

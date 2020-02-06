@@ -16,7 +16,7 @@ namespace DengueTracker.HPContract.Migrations
                     IsPositive = table.Column<bool>(nullable: false),
                     Lat = table.Column<double>(nullable: false),
                     Lon = table.Column<double>(nullable: false),
-                    CreatedBy = table.Column<string>(nullable: true),
+                    CreatedBy = table.Column<int>(nullable: false),
                     CreatedOnUtc = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
