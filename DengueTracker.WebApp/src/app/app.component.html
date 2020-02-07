@@ -1,0 +1,35 @@
+<div>
+
+  <div>
+    <h2>Dengue Tracker</h2>
+    <small class="text-muted">{{version}}</small>
+  </div>
+
+  <div class="row" *ngIf="!loggedIn">
+    <div class="col">
+      <div>
+        <label>Organization Code:</label>
+        <input [(ngModel)]="orgKey" />
+      </div>
+      <button (click)="login()">Login</button>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="loggedIn">
+    <div class="col">
+      <div>
+        <label>Address:</label>
+        <input />
+      </div>
+      <div>
+        <p-selectButton [options]="resultOptions" [(ngModel)]="selectedResult"></p-selectButton>
+      </div>
+      <button>Submit</button>
+
+      <div>
+        <a href="#">Logout</a>
+      </div>
+    </div>
+  </div>
+
+</div>
