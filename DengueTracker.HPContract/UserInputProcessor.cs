@@ -16,8 +16,10 @@ namespace DengueTracker.HPContract
 
         private static readonly string AddOrg = "add-org";
         private static readonly string ListOrg = "list-org";
+        private static readonly string CheckAuth = "check-auth";
         private static readonly string AddCase = "add-case";
-        private static readonly string[] SupportedCommands = { AddOrg, ListOrg, AddCase };
+        private static readonly string CountCase = "count-case";
+        private static readonly string[] SupportedCommands = { AddOrg, ListOrg, CheckAuth, AddCase, CountCase };
 
         public UserInputProcessor(Dictionary<string, List<string>> inputs, DataContext dataContext, string superUserPubkey)
         {
@@ -39,15 +41,11 @@ namespace DengueTracker.HPContract
                     (string command, string content) = ParseInput(line);
                     if (command != null)
                     {
-                        string output = await HandleInputAsync(command, content, isSuperUser);
+                        var output = await HandleInputAsync(command, content, isSuperUser);
                         if (output != null)
                         {
-                            AddOutput(pubkey, output);
+                            AddOutput(pubkey, command, JsonConvert.SerializeObject(output));
                         }
-                    }
-                    else
-                    {
-                        AddOutput(pubkey, line);
                     }
                 }
             }
@@ -56,7 +54,7 @@ namespace DengueTracker.HPContract
             return _outputs;
         }
 
-        private async Task<string> HandleInputAsync(string command, string content, bool isSuperUser)
+        private async Task<dynamic> HandleInputAsync(string command, string content, bool isSuperUser)
         {
             if (isSuperUser && command == AddOrg && !string.IsNullOrWhiteSpace(content))
             {
@@ -72,15 +70,25 @@ namespace DengueTracker.HPContract
             }
             else if (isSuperUser && command == ListOrg)
             {
-                var orgs = await _dataContext.Organizations.Select(o => new OrgModel
+                return await _dataContext.Organizations.Select(o => new OrgModel
                 {
                     Name = o.Name,
                     Key = o.Key
                 }).ToListAsync();
-
-                return JsonConvert.SerializeObject(orgs);
             }
-            else if (command == AddCase)
+            else if (isSuperUser && command == CountCase)
+            {
+                return await _dataContext.CaseEntries.CountAsync();
+            }
+            else if (command == CheckAuth && !string.IsNullOrWhiteSpace(content))
+            {
+                var org = await _dataContext.Organizations.FirstOrDefaultAsync(o => o.Key == content);
+                if (org != null)
+                    return new { success = true, name = org.Name };
+                else
+                    return new { success = false };
+            }
+            else if (command == AddCase && !string.IsNullOrWhiteSpace(content))
             {
                 var caseModel = JsonConvert.DeserializeObject<CaseModel>(content);
                 var org = await _dataContext.Organizations.FirstOrDefaultAsync(o => o.Key == caseModel.CreatedBy);
@@ -101,10 +109,16 @@ namespace DengueTracker.HPContract
             return null; //no output
         }
 
-        private void AddOutput(string pubkey, string output)
+        private void AddOutput(string pubkey, string originalCommand, string content)
         {
             if (!_outputs.ContainsKey(pubkey))
                 _outputs[pubkey] = new List<string>();
+
+            var output = JsonConvert.SerializeObject(new
+            {
+                origin = originalCommand,
+                content = content
+            });
 
             _outputs[pubkey].Add(output);
         }

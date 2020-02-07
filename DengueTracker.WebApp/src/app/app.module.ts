@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms'
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SelectButtonModule } from 'primeng/selectbutton'
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { SelectButtonModule } from 'primeng/selectbutton'
     BrowserModule,
     AppRoutingModule,
     FormsModule,
-    SelectButtonModule
+    SelectButtonModule,
+    ProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

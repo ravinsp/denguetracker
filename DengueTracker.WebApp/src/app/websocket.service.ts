@@ -11,6 +11,7 @@ export class WebSocketService {
 
   public connected: EventEmitter<any> = new EventEmitter();
   public disconnected: EventEmitter<any> = new EventEmitter();
+  public outputReceived: EventEmitter<any> = new EventEmitter();
 
   private socket: WebSocket = null;
   private isConnecting: boolean = false;
@@ -18,14 +19,13 @@ export class WebSocketService {
   constructor(private ks: KeyService) {
   }
 
-  send(msg: any) {
+  public send(msg: any) {
     this.socket.send(JSON.stringify(msg));
   }
 
-  connect() {
+  public connect() {
 
     this.socket = new WebSocket("wss://localhost:8080");
-
     this.socket.binaryType = 'arraybuffer';
 
     this.socket.onopen = (e) => {
@@ -63,7 +63,12 @@ export class WebSocketService {
     };
   }
 
-  handleHPMessage(msg: any) {
+  public disconnect() {
+    this.socket.close();
+    this.socket = null;
+  }
+
+  private handleHPMessage(msg: any) {
     if (msg.type == 'public_challenge') {
       this.handleChallenge(msg);
     }
@@ -72,7 +77,7 @@ export class WebSocketService {
     }
   }
 
-  handleChallenge(msg: any) {
+  private handleChallenge(msg: any) {
     // sign the challenge and send back the response
 
     const keys = this.ks.getKeys();
@@ -96,9 +101,9 @@ export class WebSocketService {
     }, 200);
   }
 
-  handleContractOutput(msg) {
+  private handleContractOutput(msg) {
     const output: string = sodium.to_string(sodium.from_hex(msg.content));
     const lines = output.split('\n').filter(s => s.length > 0);
-    console.log(lines);
+    lines.forEach(line => this.outputReceived.emit(line));
   }
 }

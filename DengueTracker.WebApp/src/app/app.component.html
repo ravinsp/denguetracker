@@ -9,9 +9,9 @@
     <div class="col">
       <div>
         <label>Organization Code:</label>
-        <input [(ngModel)]="orgKey" />
+        <input name="orgKey" [(ngModel)]="org.key" [disabled]="loginAttemptOngoing" />
       </div>
-      <button (click)="login()">Login</button>
+      <button (click)="initiateLogin()" [disabled]="loginAttemptOngoing || org.key.length == 0">Login</button>
     </div>
   </div>
 
@@ -19,17 +19,27 @@
     <div class="col">
       <div>
         <label>Address:</label>
-        <input />
+        <input #addressInput name="caseAddress" [(ngModel)]="caseEntry.address" />
       </div>
       <div>
-        <p-selectButton [options]="resultOptions" [(ngModel)]="selectedResult"></p-selectButton>
+        <p-selectButton [options]="resultOptions" [(ngModel)]="caseEntry.result"></p-selectButton>
       </div>
-      <button>Submit</button>
+      <button (click)="submitCase()" [disabled]="caseEntry.address.length == 0 || caseEntry.result == 0">Submit</button>
+      <p class="text-muted">
+        Total cases submited during this session: {{totalCasesInSession}}
+      </p>
 
       <div>
-        <a href="#">Logout</a>
+        <a href="#" (click)="logout()">Logout</a>
       </div>
     </div>
   </div>
+
+  <p class="text-danger" *ngIf="errorMsg.length > 0">
+    {{errorMsg}}
+  </p>
+
+  <p-progressSpinner *ngIf="loginAttemptOngoing" [style]="{width: '50px', height: '50px'}" strokeWidth="4">
+  </p-progressSpinner>
 
 </div>
