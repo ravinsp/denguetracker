@@ -19,12 +19,12 @@
     <div class="col">
       <div>
         <label>Address:</label>
-        <input #addressInput name="caseAddress" [(ngModel)]="caseEntry.address" />
+        <input #addressInput name="caseAddress" [(ngModel)]="caseEntry.address" [disabled]="caseSubmissionOngoing" />
       </div>
       <div>
-        <p-selectButton [options]="resultOptions" [(ngModel)]="caseEntry.result"></p-selectButton>
+        <p-selectButton [options]="resultOptions" [(ngModel)]="caseEntry.result" [disabled]="caseSubmissionOngoing"></p-selectButton>
       </div>
-      <button (click)="submitCase()" [disabled]="caseEntry.address.length == 0 || caseEntry.result == 0">Submit</button>
+      <button (click)="submitCase()" [disabled]="caseSubmissionOngoing || caseEntry.address.length == 0 || caseEntry.result == 0">Submit</button>
       <p class="text-muted">
         Total cases submited during this session: {{totalCasesInSession}}
       </p>
@@ -39,7 +39,7 @@
     {{errorMsg}}
   </p>
 
-  <p-progressSpinner *ngIf="loginAttemptOngoing" [style]="{width: '50px', height: '50px'}" strokeWidth="4">
+  <p-progressSpinner *ngIf="loginAttemptOngoing || caseSubmissionOngoing" [style]="{width: '50px', height: '50px'}" strokeWidth="4">
   </p-progressSpinner>
 
 </div>

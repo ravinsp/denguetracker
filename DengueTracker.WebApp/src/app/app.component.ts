@@ -3,6 +3,7 @@ import { SelectItem } from 'primeng/api';
 import { WebSocketService } from './websocket.service'
 import * as sodium from 'libsodium-wrappers';
 import { KeyService } from './key.service';
+import { GeoService } from './geo.service';
 
 @Component({
   selector: 'app-root',
@@ -21,13 +22,14 @@ export class AppComponent {
   loggedIn: boolean = false;
   errorMsg: string = '';
   totalCasesInSession: number = 0;
+  caseSubmissionOngoing: boolean = false;
 
   org = { key: '', name: '' };
   caseEntry = { address: '', lat: 0, lon: 0, result: 0 };
 
   @ViewChild("addressInput", null) addressInput: ElementRef;
 
-  constructor(private ws: WebSocketService, private ks: KeyService) {
+  constructor(private ws: WebSocketService, private ks: KeyService, private geo: GeoService) {
 
     this.resultOptions = [
       { label: 'Positive', value: 1 },
@@ -66,12 +68,23 @@ export class AppComponent {
 
   submitCase() {
 
-    const submitObj = { isPositive: (this.caseEntry.result == 1), lat: 0, lon: 0, createdBy: this.org.key };
-    this.ws.send(this.createInputMsg('add-case ' + JSON.stringify(submitObj)));
-    this.totalCasesInSession++;
-    this.caseEntry = { address: '', lat: 0, lon: 0, result: 0 };
+    this.caseSubmissionOngoing = true;
+    this.geo.getCoordinate(this.caseEntry.address)
+      .subscribe(loc => {
+        const submitObj = {
+          isPositive: (this.caseEntry.result == 1),
+          lat: loc.lat,
+          lon: loc.lon,
+          createdBy: this.org.key
+        };
 
-    this.addressInput.nativeElement.focus();
+        this.ws.send(this.createInputMsg('add-case ' + JSON.stringify(submitObj)));
+        this.totalCasesInSession++;
+        this.caseEntry = { address: '', lat: 0, lon: 0, result: 0 };
+
+        this.caseSubmissionOngoing = false;
+        this.addressInput.nativeElement.focus();
+      });
   }
 
   // This is called during the login attempt.

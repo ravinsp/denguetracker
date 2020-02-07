@@ -6,6 +6,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SelectButtonModule } from 'primeng/selectbutton'
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { AgmCoreModule } from '@agm/core';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,10 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     AppRoutingModule,
     FormsModule,
     SelectButtonModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    AgmCoreModule.forRoot({
+      apiKey: ''
+    })
   ],
   providers: [],
   bootstrap: [AppComponent]
