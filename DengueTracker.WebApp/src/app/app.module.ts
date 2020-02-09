@@ -8,6 +8,8 @@ import { SelectButtonModule } from 'primeng/selectbutton'
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { AgmCoreModule } from '@agm/core';
 
+declare var config;
+
 @NgModule({
   declarations: [
     AppComponent
@@ -19,7 +21,7 @@ import { AgmCoreModule } from '@agm/core';
     SelectButtonModule,
     ProgressSpinnerModule,
     AgmCoreModule.forRoot({
-      apiKey: ''
+      apiKey: config.gmapsApiKey
     })
   ],
   providers: [],

@@ -3,6 +3,7 @@ import { KeyService } from './key.service';
 import * as sodium from 'libsodium-wrappers';
 
 const ENCODING = 'utf-8';
+declare var config;
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +26,10 @@ export class WebSocketService {
 
   public connect() {
 
-    this.socket = new WebSocket("wss://localhost:8080");
+    // Choose a random Hot Pocket node from the cluster.
+    const randomNode = config.hpNodes[Math.floor(Math.random() * config.hpNodes.length)];
+
+    this.socket = new WebSocket(randomNode);
     this.socket.binaryType = 'arraybuffer';
 
     this.socket.onopen = (e) => {

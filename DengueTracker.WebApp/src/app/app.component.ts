@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, NgZone, OnInit } from '@angular/core';
 import { SelectItem } from 'primeng/api';
 import { WebSocketService } from './websocket.service'
 import * as sodium from 'libsodium-wrappers';
@@ -29,7 +29,7 @@ export class AppComponent {
 
   @ViewChild("addressInput", null) addressInput: ElementRef;
 
-  constructor(private ws: WebSocketService, private ks: KeyService, private geo: GeoService) {
+  constructor(private ws: WebSocketService, private ks: KeyService, private geo: GeoService, private ngZone: NgZone) {
 
     this.resultOptions = [
       { label: 'Positive', value: 1 },
@@ -43,9 +43,8 @@ export class AppComponent {
       const obj = JSON.parse(output);
       this.ws_outputReceived(obj.origin, JSON.parse(obj.content));
     });
-
   }
-
+  
   initiateLogin() {
     this.loginAttemptOngoing = true;
     this.errorMsg = '';
@@ -69,21 +68,27 @@ export class AppComponent {
   submitCase() {
 
     this.caseSubmissionOngoing = true;
-    this.geo.getCoordinate(this.caseEntry.address)
+    this.geo.getCoordinate(this.caseEntry.address + ' Sri Lanka')
       .subscribe(loc => {
-        const submitObj = {
-          isPositive: (this.caseEntry.result == 1),
-          lat: loc.lat,
-          lon: loc.lon,
-          createdBy: this.org.key
-        };
 
-        this.ws.send(this.createInputMsg('add-case ' + JSON.stringify(submitObj)));
-        this.totalCasesInSession++;
-        this.caseEntry = { address: '', lat: 0, lon: 0, result: 0 };
+        this.ngZone.run(() => {
+          const submitObj = {
+            isPositive: (this.caseEntry.result == 1),
+            lat: loc.lat,
+            lon: loc.lon,
+            createdBy: this.org.key
+          };
 
-        this.caseSubmissionOngoing = false;
-        this.addressInput.nativeElement.focus();
+          this.ws.send(this.createInputMsg('add-case ' + JSON.stringify(submitObj)));
+
+          this.totalCasesInSession++;
+          this.caseEntry = { address: '', lat: 0, lon: 0, result: 0 };
+          this.caseSubmissionOngoing = false;
+
+          setTimeout(() => {
+            this.addressInput.nativeElement.focus();
+          }, 1);
+        });
       });
   }
 
