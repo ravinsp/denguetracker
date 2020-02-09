@@ -44,7 +44,7 @@ export class AppComponent {
       this.ws_outputReceived(obj.origin, JSON.parse(obj.content));
     });
   }
-  
+
   initiateLogin() {
     this.loginAttemptOngoing = true;
     this.errorMsg = '';
@@ -55,6 +55,9 @@ export class AppComponent {
     this.loginAttemptOngoing = false;
     this.org.name = orgName;
     this.loggedIn = true;
+    setTimeout(() => {
+      this.addressInput.nativeElement.focus();
+    }, 1);
   }
 
   logout() {

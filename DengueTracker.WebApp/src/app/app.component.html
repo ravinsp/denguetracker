@@ -1,45 +1,78 @@
-<div>
+<div class="container-fluid bg-secondary">
 
-  <div>
-    <h2>Dengue Tracker</h2>
-    <small class="text-muted">{{version}}</small>
-  </div>
-
-  <div class="row" *ngIf="!loggedIn">
+  <div class="row main align-items-center">
     <div class="col">
-      <div>
-        <label>Organization Code:</label>
-        <input name="orgKey" [(ngModel)]="org.key" [disabled]="loginAttemptOngoing" />
+    </div>
+    <div class="col-auto text-center">
+      <div class="card shadow p-0">
+        <div class="header p-2 mb-3">
+          <h2>Dengue Tracker</h2>
+          <small class="text-muted">{{version}}</small>
+        </div>
+
+        <div>
+          <div class="row m-4" *ngIf="!loggedIn">
+            <div class="col">
+              <div class="mb-2" style="width: 400px;">
+                <div>Organization Code:</div>
+                <div>
+                  <input name="orgKey" type="password" autofocus [(ngModel)]="org.key"
+                    [disabled]="loginAttemptOngoing" />
+                </div>
+              </div>
+              <button class="btn btn-primary" (click)="initiateLogin()"
+                [disabled]="loginAttemptOngoing || org.key.length == 0">Login</button>
+            </div>
+          </div>
+
+          <div class="row m-4" *ngIf="loggedIn">
+            <div class="col">
+              <h5 class="text-primary">- Provide test results -</h5>
+              <div class="mb-2">
+                <div>Address:</div>
+                <div>
+                  <input #addressInput name="caseAddress" [(ngModel)]="caseEntry.address"
+                    [disabled]="caseSubmissionOngoing" style="width: 400px;" />
+                </div>
+              </div>
+              <div class="mb-2">
+                <p-selectButton [options]="resultOptions" [(ngModel)]="caseEntry.result"
+                  [disabled]="caseSubmissionOngoing">
+                </p-selectButton>
+              </div>
+              <button class="btn btn-primary mb-5" (click)="submitCase()"
+                [disabled]="caseSubmissionOngoing || caseEntry.address.length == 0 || caseEntry.result == 0">Submit</button>
+
+              <div class="text-muted">
+                <small>Total cases submited during this session: {{totalCasesInSession}}</small>
+              </div>
+
+              <div>
+                <a class="text-danger" href="#" (click)="logout()">Logout</a>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-danger" [hidden]="errorMsg.length == 0">
+            {{errorMsg}}
+          </p>
+
+          <div class="m-2 text-center" style="height: 30px;">
+            <p-progressSpinner *ngIf="loginAttemptOngoing || caseSubmissionOngoing"
+              [style]="{width: '30px', height: '30px'}" strokeWidth="4">
+            </p-progressSpinner>
+          </div>
+
+        </div>
       </div>
-      <button (click)="initiateLogin()" [disabled]="loginAttemptOngoing || org.key.length == 0">Login</button>
+      <div class="mt-2">
+        <small class="footer-text text-light">Solution by <a class="text-light" href="https://www.geveo.com">Geveo
+            Australasia</a> | Powered by <a class="text-light" href="https://github.com/HotPocketDev/core">Hot
+            Pocket</a></small>
+      </div>
+    </div>
+    <div class="col">
     </div>
   </div>
-
-  <div class="row" *ngIf="loggedIn">
-    <div class="col">
-      <div>
-        <label>Address:</label>
-        <input #addressInput name="caseAddress" [(ngModel)]="caseEntry.address" [disabled]="caseSubmissionOngoing" />
-      </div>
-      <div>
-        <p-selectButton [options]="resultOptions" [(ngModel)]="caseEntry.result" [disabled]="caseSubmissionOngoing"></p-selectButton>
-      </div>
-      <button (click)="submitCase()" [disabled]="caseSubmissionOngoing || caseEntry.address.length == 0 || caseEntry.result == 0">Submit</button>
-      <p class="text-muted">
-        Total cases submited during this session: {{totalCasesInSession}}
-      </p>
-
-      <div>
-        <a href="#" (click)="logout()">Logout</a>
-      </div>
-    </div>
-  </div>
-
-  <p class="text-danger" *ngIf="errorMsg.length > 0">
-    {{errorMsg}}
-  </p>
-
-  <p-progressSpinner *ngIf="loginAttemptOngoing || caseSubmissionOngoing" [style]="{width: '50px', height: '50px'}" strokeWidth="4">
-  </p-progressSpinner>
 
 </div>
