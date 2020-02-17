@@ -19,7 +19,8 @@ namespace DengueTracker.HPContract
         private static readonly string CheckAuth = "check-auth";
         private static readonly string AddCase = "add-case";
         private static readonly string CountCase = "count-case";
-        private static readonly string[] SupportedCommands = { AddOrg, ListOrg, CheckAuth, AddCase, CountCase };
+        private static readonly string ListCase = "list-case";
+        private static readonly string[] SupportedCommands = { AddOrg, ListOrg, CheckAuth, AddCase, CountCase, ListCase };
 
         public UserInputProcessor(Dictionary<string, List<string>> inputs, DataContext dataContext, string superUserPubkey)
         {
@@ -38,10 +39,10 @@ namespace DengueTracker.HPContract
 
                 foreach (var line in inputLines)
                 {
-                    (string command, string content) = ParseInput(line);
+                    (string command, string commandParam) = ParseInput(line);
                     if (command != null)
                     {
-                        var output = await HandleInputAsync(command, content, isSuperUser);
+                        var output = await HandleInputAsync(command, commandParam, isSuperUser);
                         if (output != null)
                         {
                             AddOutput(pubkey, command, JsonConvert.SerializeObject(output));
@@ -54,11 +55,11 @@ namespace DengueTracker.HPContract
             return _outputs;
         }
 
-        private async Task<dynamic> HandleInputAsync(string command, string content, bool isSuperUser)
+        private async Task<dynamic> HandleInputAsync(string command, string commandParam, bool isSuperUser)
         {
-            if (isSuperUser && command == AddOrg && !string.IsNullOrWhiteSpace(content))
+            if (isSuperUser && command == AddOrg && !string.IsNullOrWhiteSpace(commandParam))
             {
-                var org = JsonConvert.DeserializeObject<OrgModel>(content);
+                var org = JsonConvert.DeserializeObject<OrgModel>(commandParam);
                 if (!string.IsNullOrWhiteSpace(org.Name) && !string.IsNullOrWhiteSpace(org.Key))
                 {
                     _dataContext.Organizations.Add(new Organization
@@ -80,17 +81,23 @@ namespace DengueTracker.HPContract
             {
                 return await _dataContext.CaseEntries.CountAsync();
             }
-            else if (command == CheckAuth && !string.IsNullOrWhiteSpace(content))
+            else if (isSuperUser && command == ListCase && !string.IsNullOrWhiteSpace(commandParam))
             {
-                var org = await _dataContext.Organizations.FirstOrDefaultAsync(o => o.Key == content);
+                int fromId = 0;
+                if (int.TryParse(commandParam, out fromId))
+                    return await _dataContext.CaseEntries.Where(c => c.Id >= fromId).ToListAsync();
+            }
+            else if (command == CheckAuth && !string.IsNullOrWhiteSpace(commandParam))
+            {
+                var org = await _dataContext.Organizations.FirstOrDefaultAsync(o => o.Key == commandParam);
                 if (org != null)
                     return new { success = true, name = org.Name };
                 else
                     return new { success = false };
             }
-            else if (command == AddCase && !string.IsNullOrWhiteSpace(content))
+            else if (command == AddCase && !string.IsNullOrWhiteSpace(commandParam))
             {
-                var caseModel = JsonConvert.DeserializeObject<CaseModel>(content);
+                var caseModel = JsonConvert.DeserializeObject<CaseModel>(commandParam);
                 var org = await _dataContext.Organizations.FirstOrDefaultAsync(o => o.Key == caseModel.CreatedBy);
 
                 if (org != null) // Only accept cases from authorized organisations.
@@ -123,7 +130,7 @@ namespace DengueTracker.HPContract
             _outputs[pubkey].Add(output);
         }
 
-        private (string command, string content) ParseInput(string input)
+        private (string command, string commandParam) ParseInput(string input)
         {
             var parts = input.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length >= 1 && SupportedCommands.Contains(parts[0]))
