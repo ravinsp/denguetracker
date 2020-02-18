@@ -1,9 +1,10 @@
 import { Component, ViewChild, ElementRef, NgZone, OnInit } from '@angular/core';
 import { SelectItem } from 'primeng/api';
 import { WebSocketService } from './websocket.service'
-import * as sodium from 'libsodium-wrappers';
 import { KeyService } from './key.service';
 import { GeoService } from './geo.service';
+
+declare var sodium;
 
 @Component({
   selector: 'app-root',

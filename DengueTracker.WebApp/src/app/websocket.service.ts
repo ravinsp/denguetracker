@@ -1,8 +1,8 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { KeyService } from './key.service';
-import * as sodium from 'libsodium-wrappers';
 
 const ENCODING = 'utf-8';
+declare var sodium;
 declare var config;
 
 @Injectable({
@@ -37,7 +37,9 @@ export class WebSocketService {
     };
 
     this.socket.onmessage = (event) => {
-      const str = new TextDecoder(ENCODING).decode(event.data);
+      const str = (typeof event.data == "string") ?
+        event.data :
+        new TextDecoder(ENCODING).decode(event.data);
 
       try {
         const msg = JSON.parse(str);

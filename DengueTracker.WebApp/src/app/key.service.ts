@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import * as sodium from 'libsodium-wrappers';
+
+declare var sodium;
 
 @Injectable({
   providedIn: 'root'
@@ -7,10 +8,6 @@ import * as sodium from 'libsodium-wrappers';
 export class KeyService {
 
   private keys: any = null;
-
-  constructor() {
-    sodium.ready.then(() => { console.log('Sodium loaded.') }).catch((e) => { console.log(e) })
-  }
 
   getKeys() {
 
